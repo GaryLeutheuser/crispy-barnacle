@@ -10,35 +10,35 @@
 #define PIN_SMOKE_CTRL	3   // Control signal for driving the IR LED
 #define PIN_SMOKE_IN	5   // Amplified photodiode voltage - input to RFduino
 #define SENSOR_ID	1   // For use in minor field to ID the sensor board
-#define THRESHOLD	100 // Threshold value for smoke level - how much indicates smoke is present?
 
-int readout = 0;
+#define LED_ON_TIME	    50	// Time that LED should be left on to "charge" photodiode
+#define MEASUREMENT_DELAY   500 // Delay in ms between measurements
+
+int smoke = 0;
 
 void setup() {
-  // do iBeacon advertising
-  RFduinoBLE.iBeacon = true;
-  // Set minor field for identification
-  RFduinoBLE.iBeaconMinor = SENSOR_ID;
-  
-  //Configure pin directions
-  pinMode(PIN_SMOKE_CTRL, OUTPUT);
-  pinMode(PIN_SMOKE_IN, INPUT);
+    // do iBeacon advertising
+    RFduinoBLE.iBeacon = true;
+    // Set minor field for identification
+    RFduinoBLE.iBeaconMinor = SENSOR_ID;
+
+    //Configure pin directions
+    pinMode(PIN_SMOKE_CTRL, OUTPUT);
+    pinMode(PIN_SMOKE_IN, INPUT);
 }
 
 void loop() {
+    // turn on LED for 50 ms
+    digitalWrite(PIN_SMOKE_CTRL, HIGH);
+    delay(LED_ON_TIME);
 
-  RFduino_ULPDelay(250);
-  
-  // turn on LED
-  digitalWrite(PIN_SMOKE_CTRL, HIGH);
-  
-  delay(50);
-  
-  // Read out smoke sensor  
-  readout = analogRead(PIN_SMOKE_IN);
+    // Read smoke sensor output
+    smoke = analogRead(PIN_SMOKE_IN);
 
-  delay(50);
+    // Turn off the LED
+    digitalWrite(PIN_SMOKE_CTRL, LOW);
 
-  //Turn off the LED
-  digitalWrite(PIN_SMOKE_CTRL, LOW);
+    // Broadcast smoke value and delay until
+    // next measurement
+    updateData(smoke, MEASUREMENT_DELAY);
 }
