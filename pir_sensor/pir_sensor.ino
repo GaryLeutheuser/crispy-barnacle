@@ -6,70 +6,45 @@
 
 #include <RFduinoBLE.h>
 
-const int PIRin = 2;
-
-bool newadv = false;
-
+#define MEASUREMENT_PERIOD  500	    // Value in ms to be delayed between measurements
+#define PIN_PIR		    2	    // Defines which pin the PIR input is mapped to
+ 
+// Variable to hold detection of motion
 int motion = 0;
 
-void sendStuff(void);
+// Updates iBeacon major field value
+void updateData(void);	
 
 void setup() {
-  // do iBeacon advertising
- RFduinoBLE.iBeacon = true;
-  
-  // override the default iBeacon settings
-  uint8_t uuid[16] = {0xE2, 0xC5, 0x6D, 0xB5, 0xDF, 0xFB, 0x48, 0xD2, 0xB0, 0x60, 0xD0, 0xF5, 0xA7, 0x10, 0x96, 0xE0};
-  memcpy(RFduinoBLE.iBeaconUUID, uuid, sizeof(RFduinoBLE.iBeaconUUID));
-  RFduinoBLE.iBeaconMajor = 1234;
-  RFduinoBLE.iBeaconMinor = 5678;
-  RFduinoBLE.iBeaconMeasuredPower = 0xC6;
-  
-  // start the BLE stack
-  //RFduinoBLE.begin();
+    // Set UUID for identification
+    uint8_t uuid[16] = {0xE2, 0xC5, 0x6D, 0xB5, 0xDF, 0xFB, 0x48, 0xD2, 0xB0, 0x60, 0xD0, 0xF5, 0xA7, 0x10, 0x96, 0xE0};
+    memcpy(RFduinoBLE.iBeaconUUID, uuid, sizeof(RFduinoBLE.iBeaconUUID));
 
-  //Configure pin directions
-  pinMode(2, INPUT);
-  //RFduino_pinWake(2, HIGH); //Wake device when 2 goes high
+    // do iBeacon advertising
+    RFduinoBLE.iBeacon = true;
+
+    //Configure pin directions
+    pinMode(PIN_PIR, INPUT);
 }
 
 void loop() {
-
-  //RFduino_ULPDelay(500);
-  motion = (int) digitalRead(2);
-  sendStuff(motion);
-  //pinMode(2, INPUT);
-  
-  /*if (RFduino_pinWoke(PIRin)){
-     RFduinoBLE.end();
-     RFduinoBLE.iBeaconMajor = 1111;
-     RFduinoBLE.begin(); 
-     
-     RFduino_ULPDelay(SECONDS(4));
-     
-     RFduinoBLE.end();
-     RFduinoBLE.iBeaconMajor = 0000;
-     RFduinoBLE.begin(); 
-     
-     RFduino_resetPinWake(PIRin);*/
+    // Read and update motion value (discrete from PIR)
+    // motion = 1: motion detected
+    // motion = 0: motion not detected
+    motion = (int) digitalRead(PIN_PIR);
     
-  
-    
-//  }
-
+    // Update the major field with the current
+    // motion value
+    updateData(motion, MEASUREMENT_PERIOD);
 }
 
-// If RFduinoBLE.begin has been run, and is currently running, you cannot use the GPIO apparently
+// Updates the beacon value for broadcasting
+void updateData(int data, int time_delay) {
+    // BLE Stack cannot be running while updating value
+    RFduinoBLE.end();
+    RFduinoBLE.iBeaconMajor = data;
+    RFduinoBLE.begin();
 
-void sendStuff(int data) {
-     RFduinoBLE.end();
-     RFduinoBLE.iBeaconMajor = data;
-     RFduinoBLE.begin();  
-     RFduino_ULPDelay(5000);
-     RFduinoBLE.end();
-}
-
-void RFduinoBLE_onAdvertisement(bool start)
-{
-  // turn the green led on if we start advertisement, and turn it
+    // Allow at least 25 ms for value to broadcast
+    RFduino_ULPDelay(time_delay);
 }
