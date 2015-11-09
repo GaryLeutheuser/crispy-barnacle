@@ -1,127 +1,110 @@
-//https://github.com/finnurtorfa/nrf51/blob/master/lib/nrf51sdk/Nordic/nrf51822/Board/nrf6310/timer_example/main.c
+/*
+    Gary Leutheuser, Robert Simon, Robert Short, 2015
+    Humidity sensor firmware
+    Targets RFD221301
+*/
 
 #include <RFduinoBLE.h>
-#include <Wire.h>
 
-const int ledPinGreen = 3;
+// Set humidity sensor input pin
 const int humidityIn = 5;
 
-int ledState = LOW;
-bool newadv = false;
+// Sampling describes if we are currently
+// timing a humidity pulse width or not,
+// sampling = 1: currently timing
+// sampling = 0: not timing
 bool sampling = true;
+
+// Stores the timer count accured during
+// one humidity pulse width
 int readout = 0;
 
-void timer_config(void)
-{
-  NRF_TIMER2->TASKS_STOP = 1;  // Stop timer
-  NRF_TIMER2->MODE = TIMER_MODE_MODE_Timer;  // taken from Nordic dev zone
-  NRF_TIMER2->BITMODE = TIMER_BITMODE_BITMODE_16Bit;
-  NRF_TIMER2->PRESCALER = 1;  // 32us resolution
-  NRF_TIMER2->TASKS_CLEAR = 1; // Clear timer
-  
-  // With 32 us ticks, we need to multiply by 31.25 to get milliseconds
-  //NRF_TIMER2->CC[0] = 7;
-  //NRF_TIMER2->CC[0] += number_of_ms / 4;
-  //NRF_TIMER2->INTENSET = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos;  // taken from Nordic dev zone
-  //NRF_TIMER2->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
-  //attachInterrupt(TIMER2_IRQn, TIMER2_Interrupt);    // also used in variant.cpp to configure the RTC1
-  //NRF_TIMER2->TASKS_START = 1;  // Start TIMER
+// Timer configuration function
+void timer_config(void) {
+    
+    // Stop timer
+    NRF_TIMER2->TASKS_STOP = 1;
+
+    // Set to timer mode (not counter)
+     NRF_TIMER2->MODE = TIMER_MODE_MODE_Timer;
+    
+    // Set to 16-bit timer
+    NRF_TIMER2->BITMODE = TIMER_BITMODE_BITMODE_16Bit;
+    
+    // f_timer = 16 MHz / (2^PRESCALER)
+    // 16/2 = 8 MHz timer frequency, or 125 ns resolution
+    NRF_TIMER2->PRESCALER = 1;
+    
+    // Clear the timer
+    NRF_TIMER2->TASKS_CLEAR = 1;
 }
 
+// Setup function: runs once
 void setup() {
-  // do iBeacon advertising
-  RFduinoBLE.iBeacon = true;
-  
-  // override the default iBeacon settings
-  uint8_t uuid[16] = {0xE2, 0xC5, 0x6D, 0xB5, 0xDF, 0xFB, 0x48, 0xD2, 0xB0, 0x60, 0xD0, 0xF5, 0xA7, 0x10, 0x96, 0xE0};
-  memcpy(RFduinoBLE.iBeaconUUID, uuid, sizeof(RFduinoBLE.iBeaconUUID));
-  RFduinoBLE.iBeaconMajor = 1234;
-  RFduinoBLE.iBeaconMinor = 5678;
-  RFduinoBLE.iBeaconMeasuredPower = 0xC6;
-  
-  // start the BLE stack
-  RFduinoBLE.begin();
-  
-  //setup and start the timer
-  
-  //Serial.println("LOLSIMON");
-  timer_config();
- 
-  pinMode(ledPinGreen, OUTPUT);
-  pinMode(humidityIn, INPUT);
+    // Use iBeacon protocol
+    FduinoBLE.iBeacon = true;
 
-  //Set up GPIO Settings
-  //NVIC_EnableIRQ(GPIOTE_IRQn);
-  NRF_GPIOTE->CONFIG[0] =  (1 << GPIOTE_CONFIG_POLARITY_Pos)
-              | (humidityIn << GPIOTE_CONFIG_PSEL_Pos) // using GPIO 5 as input
-              | (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
-  NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_IN0_Set << GPIOTE_INTENSET_IN0_Pos;
-  attachInterrupt(GPIOTE_IRQn, GPIOTE_IRQHandler);
+    // Start Bluetooth
+    RFduinoBLE.begin();
 
-  //Serial.begin(9600);
-  
-  delay(1000);
+    // Setup timer
+    timer_config();
 
+    // Setup humidity pin interrupt
+    pinMode(humidityIn, INPUT);
+    NRF_GPIOTE->CONFIG[0] =  (1 << GPIOTE_CONFIG_POLARITY_Pos)
+	      | (humidityIn << GPIOTE_CONFIG_PSEL_Pos) // using GPIO 5 as input
+	      | (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
+    NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_IN0_Set << GPIOTE_INTENSET_IN0_Pos;
+
+    // Attach interrupt handler
+    attachInterrupt(GPIOTE_IRQn, GPIOTE_IRQHandler);
 }
 
+// Main loop, repeats forever
 void loop() {
-  // put your main code here, to run repeatedly:
- RFduino_ULPDelay(200);
- if (newadv){
- RFduinoBLE.end();
- RFduinoBLE.iBeaconMajor = readout;
- newadv = false;
- RFduinoBLE.begin(); 
- }
-  //Do something in here with your I2C device
+    // Low power mode delay between readings;
+    // The argument is the number of miliseconds
+    // between readings.
+    RFduino_ULPDelay(200);
 
+    // Stop Bluetooth
+    RFduinoBLE.end();
+    // Update the field with new humidity pulse count
+    RFduinoBLE.iBeaconMajor = readout;
+    // Start Bluetooth
+    RFduinoBLE.begin(); 
+    }
 }
 
-void RFduinoBLE_onAdvertisement(bool start)
-{
-  // turn the green led on if we start advertisement, and turn it
-  // off if we stop advertisement
-  
-  newadv = true;
-}
-
+// Interrupt handler
 void GPIOTE_IRQHandler(void)
 {
   // Event causing the interrupt must be cleared
-  if ((NRF_GPIOTE->EVENTS_IN[0] == 1) && (NRF_GPIOTE->INTENSET & GPIOTE_INTENSET_IN0_Msk))
-  {
-    if(sampling == false){
-      //When we get a humidity sensor pos edge start timer
-      NRF_TIMER2->TASKS_START = 1;  // Start TIMER
-      sampling = true;
-    }
-    
-    else{
+  if ((NRF_GPIOTE->EVENTS_IN[0] == 1) && (NRF_GPIOTE->INTENSET & GPIOTE_INTENSET_IN0_Msk)) {
+    if (sampling == false) {
+
+      // Start timer on humidity pos edge
+      NRF_TIMER2->TASKS_START = 1;
+      
+      // Set sampling flag
+      sampling = true;    
+    } else {
+     
       //Stop Timer
       NRF_TIMER2->TASKS_STOP = 1;
+
       //read counter value
       NRF_TIMER2->TASKS_CAPTURE[0] = 1;
-      
       readout = NRF_TIMER2->CC[0];
       
-      
-      //Serial.begin(9600);
-      //Serial.println(readout, DEC);
-      
+      // Clear the timer
       NRF_TIMER2->TASKS_CLEAR = 1;
       
-      //Test: Toggle GPIO3 to test if this function is entered
-      digitalWrite(ledPinGreen, HIGH);
-      //delay(250);
-      digitalWrite(ledPinGreen, LOW);
-
+      // Reset sampling flag
       sampling = false;
-      
     }
-    //Serial.println(NRF_TIMER2->CC[0], DEC);
    
     NRF_GPIOTE->EVENTS_IN[0] = 0;
   }
-  //DO SOMETHING HERE WHEN PIN CHANGES STATES
 }
-
