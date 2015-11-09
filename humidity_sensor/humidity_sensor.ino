@@ -42,7 +42,7 @@ void timer_config(void) {
 // Setup function: runs once
 void setup() {
     // Use iBeacon protocol
-    FduinoBLE.iBeacon = true;
+    RFduinoBLE.iBeacon = true;
 
     // Start Bluetooth
     RFduinoBLE.begin();
@@ -74,7 +74,6 @@ void loop() {
     RFduinoBLE.iBeaconMajor = readout;
     // Start Bluetooth
     RFduinoBLE.begin(); 
-    }
 }
 
 // Interrupt handler
