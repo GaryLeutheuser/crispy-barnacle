@@ -5,9 +5,12 @@
 */
 
 #include <RFduinoBLE.h>
+#include "RFduinoCustoms.h"
 
 void setup() {
-
+    // iBeacon advertising
+    RFduinoBLE.iBeacon = true;
+    RFduinoBLE.iBeaconMinor = 2;
 }
 
 void loop() {

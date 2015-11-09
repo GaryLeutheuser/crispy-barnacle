@@ -5,9 +5,10 @@
 */
 
 #include <RFduinoBLE.h>
+#include "RFduinoCustoms.h"
 
-// Set humidity sensor input pin
-const int humidityIn = 5;
+#define MEASUREMENT_DELAY   200	// Delay between measurements
+#define PIN_HUMIDITY	    5	// Output from humidity sensor, input to RFduino
 
 // Sampling describes if we are currently
 // timing a humidity pulse width or not,
@@ -21,7 +22,6 @@ int readout = 0;
 
 // Timer configuration function
 void timer_config(void) {
-    
     // Stop timer
     NRF_TIMER2->TASKS_STOP = 1;
 
@@ -43,17 +43,16 @@ void timer_config(void) {
 void setup() {
     // Use iBeacon protocol
     RFduinoBLE.iBeacon = true;
-
-    // Start Bluetooth
-    RFduinoBLE.begin();
+    // Set minor field for identification
+    RFduinoBLE.iBeaconMinor = 3;
 
     // Setup timer
     timer_config();
 
     // Setup humidity pin interrupt
-    pinMode(humidityIn, INPUT);
+    pinMode(PIN_HUMIDITY, INPUT);
     NRF_GPIOTE->CONFIG[0] =  (1 << GPIOTE_CONFIG_POLARITY_Pos)
-	      | (humidityIn << GPIOTE_CONFIG_PSEL_Pos) // using GPIO 5 as input
+	      | (PIN_HUMIDITY << GPIOTE_CONFIG_PSEL_Pos) // using GPIO 5 as input
 	      | (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos);
     NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_IN0_Set << GPIOTE_INTENSET_IN0_Pos;
 
@@ -63,22 +62,11 @@ void setup() {
 
 // Main loop, repeats forever
 void loop() {
-    // Low power mode delay between readings;
-    // The argument is the number of miliseconds
-    // between readings.
-    RFduino_ULPDelay(200);
-
-    // Stop Bluetooth
-    RFduinoBLE.end();
-    // Update the field with new humidity pulse count
-    RFduinoBLE.iBeaconMajor = readout;
-    // Start Bluetooth
-    RFduinoBLE.begin(); 
+    updateData(readout, MEASUREMENT_DELAY);
 }
 
 // Interrupt handler
-void GPIOTE_IRQHandler(void)
-{
+void GPIOTE_IRQHandler(void) {
   // Event causing the interrupt must be cleared
   if ((NRF_GPIOTE->EVENTS_IN[0] == 1) && (NRF_GPIOTE->INTENSET & GPIOTE_INTENSET_IN0_Msk)) {
     if (sampling == false) {
