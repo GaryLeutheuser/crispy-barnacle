@@ -7,10 +7,12 @@
 #include <RFduinoBLE.h>
 #include "RFduinoCustoms.h"
 
+#define SENSOR_ID   2	// For use in minor field to ID the sensor board
+
 void setup() {
     // iBeacon advertising
     RFduinoBLE.iBeacon = true;
-    RFduinoBLE.iBeaconMinor = 2;
+    RFduinoBLE.iBeaconMinor = SENSOR_ID;
 }
 
 void loop() {

@@ -9,6 +9,7 @@
 
 #define PIN_SMOKE_CTRL	3   // Control signal for driving the IR LED
 #define PIN_SMOKE_IN	5   // Amplified photodiode voltage - input to RFduino
+#define SENSOR_ID	1   // For use in minor field to ID the sensor board
 #define THRESHOLD	100 // Threshold value for smoke level - how much indicates smoke is present?
 
 int readout = 0;
@@ -17,7 +18,7 @@ void setup() {
   // do iBeacon advertising
   RFduinoBLE.iBeacon = true;
   // Set minor field for identification
-  RFduinoBLE.iBeaconMinor = 1;
+  RFduinoBLE.iBeaconMinor = SENSOR_ID;
   
   //Configure pin directions
   pinMode(PIN_SMOKE_CTRL, OUTPUT);

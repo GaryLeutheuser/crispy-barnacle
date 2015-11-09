@@ -9,6 +9,7 @@
 
 #define MEASUREMENT_PERIOD  500	    // Value in ms to be delayed between measurements
 #define PIN_PIR		    2	    // Defines which pin the PIR input is mapped to
+#define SENSOR_ID	    0	    // For use in minor field to ID the sensor board
  
 // Variable to hold detection of motion
 int motion = 0;
@@ -20,7 +21,7 @@ void setup() {
     // do iBeacon advertising
     RFduinoBLE.iBeacon = true;
     // Set Minor field for identification
-    RFduinoBLE.iBeaconMinor = 0;
+    RFduinoBLE.iBeaconMinor = SENSOR_ID;
 
     //Configure pin directions
     pinMode(PIN_PIR, INPUT);

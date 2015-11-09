@@ -9,6 +9,7 @@
 
 #define MEASUREMENT_DELAY   200	// Delay between measurements
 #define PIN_HUMIDITY	    5	// Output from humidity sensor, input to RFduino
+#define SENSOR_ID	    3	// For use in minor field to ID the sensor board
 
 // Sampling describes if we are currently
 // timing a humidity pulse width or not,
@@ -44,7 +45,7 @@ void setup() {
     // Use iBeacon protocol
     RFduinoBLE.iBeacon = true;
     // Set minor field for identification
-    RFduinoBLE.iBeaconMinor = 3;
+    RFduinoBLE.iBeaconMinor = SENSOR_ID;
 
     // Setup timer
     timer_config();
