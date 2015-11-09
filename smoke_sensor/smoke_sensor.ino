@@ -1,3 +1,9 @@
+/*
+    Gary Leutheuser, Robert Simon, Robert Short, 2015
+    Smoke sensor firmware
+    Targets RFD221301
+*/
+
 #include <RFduinoBLE.h>
 #include <Wire.h>
 
