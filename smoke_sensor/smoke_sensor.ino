@@ -17,18 +17,18 @@
 int smoke = 0;
 
 void setup() {
-    // do iBeacon advertising
+    // Do iBeacon advertising
     RFduinoBLE.iBeacon = true;
     // Set minor field for identification
     RFduinoBLE.iBeaconMinor = SENSOR_ID;
 
-    //Configure pin directions
+    // Configure pin directions
     pinMode(PIN_SMOKE_CTRL, OUTPUT);
     pinMode(PIN_SMOKE_IN, INPUT);
 }
 
 void loop() {
-    // turn on LED for 50 ms
+    // Turn on LED for 50 ms
     digitalWrite(PIN_SMOKE_CTRL, HIGH);
     delay(LED_ON_TIME);
 
