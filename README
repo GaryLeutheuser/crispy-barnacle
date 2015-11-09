@@ -1,0 +1,10 @@
+This project consists of the source code for the various sensors used in the
+MHMS senior design project. The project currently consists of the following
+sensors, each requiring a unique source code file:
+
+    1. Humidity
+    2. Smoke
+    3. Carbon Monoxide
+    4. Passive Infrared (PIR)
+
+These files are intended (via Arduino), to be loaded onto the RFduino device.

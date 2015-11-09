@@ -3,7 +3,6 @@
 const int PIRin = 2;
 
 bool newadv = false;
-//bool motion = false;
 
 int motion = 0;
 
@@ -67,5 +66,4 @@ void sendStuff(int data) {
 void RFduinoBLE_onAdvertisement(bool start)
 {
   // turn the green led on if we start advertisement, and turn it
-  // off if we stop advertisement
 }
