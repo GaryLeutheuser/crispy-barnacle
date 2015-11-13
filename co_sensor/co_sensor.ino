@@ -32,7 +32,7 @@ void loop() {
     digitalWrite(PIN_CO_CTRL, HIGH);
     delay(SECONDS(TIME_COIL_HIGH);
     digitalWrite(PIN_CO_CTRL, LOW);
-    delay(SECONDS(TIME_COIL_LOW);
+    delay(SECONDS(TIME_COIL_LOW));
 
     // Take a measurement, and wait to start the cycle over again
     carbon_monoxide = analogRead(PIN_CO_IN);
