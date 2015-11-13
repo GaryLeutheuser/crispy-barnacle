@@ -30,7 +30,7 @@ void setup() {
 void loop() {
     //Drive the coil through its cycle
     digitalWrite(PIN_CO_CTRL, HIGH);
-    delay(SECONDS(TIME_COIL_HIGH);
+    delay(SECONDS(TIME_COIL_HIGH));
     digitalWrite(PIN_CO_CTRL, LOW);
     delay(SECONDS(TIME_COIL_LOW));
 
