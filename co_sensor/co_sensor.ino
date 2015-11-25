@@ -15,6 +15,8 @@
 #define TIME_COIL_LOW	    90	// Amount of time the coil should spend low, in seconds
 #define MEASUREMENT_DELAY   10	// Amount of time to wait before starting next measurement cycle, in seconds
 
+#define RESISTANCE_100PPM   3000 // Coil resistance in 100 PPM CO
+
 int carbon_monoxide = 0;
 
 void setup() {
@@ -28,13 +30,41 @@ void setup() {
 }
 
 void loop() {
+
+    // Holds calculated current resistance of coil
+    float resistance = 0;
+    // Holds ratio of current resistance to 100 PPM resistance
+    float resistance_ratio = 0;
+    // Holds current CO level in PPM
+    int co_ppm = 0;
+
     //Drive the coil through its cycle
     digitalWrite(PIN_CO_CTRL, HIGH);
-    delay(SECONDS(TIME_COIL_HIGH);
+    delay(SECONDS(TIME_COIL_HIGH));
     digitalWrite(PIN_CO_CTRL, LOW);
-    delay(SECONDS(TIME_COIL_LOW);
+    delay(SECONDS(TIME_COIL_LOW));
 
     // Take a measurement, and wait to start the cycle over again
     carbon_monoxide = analogRead(PIN_CO_IN);
-    updateData(carbon_monoxide, SECONDS(MEASUREMENT_DELAY));
+
+    // Calculate the CO concentration in PPM
+    resistance = 10000*(1024-carbon_monoxide)/ ((float) carbon_monoxide);
+    
+    resistance_ratio = resistance/RESISTANCE_100PPM;
+
+    if (resistance_ratio > 10) {
+	co_ppm = 10;
+    } else if (resistance_ratio > 2) {
+	co_ppm = 50;
+    } else if (resistance_ratio > 1) {
+	co_ppm = 100;
+    } else if (resistance_ratio > 0.4) {
+	co_ppm = 400;
+    } else if (resistance_ratio > 0.2) {
+	co_ppm = 1000;
+    } else if (resistance_ratio > 0.1) {
+	co_ppm = 4000;
+    }
+
+    updateData(co_ppm, SECONDS(MEASUREMENT_DELAY));
 }
