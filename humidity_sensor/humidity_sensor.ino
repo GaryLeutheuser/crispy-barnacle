@@ -63,7 +63,26 @@ void setup() {
 
 // Main loop, repeats forever
 void loop() {
-    updateData(readout, MEASUREMENT_DELAY);
+    int rh = 0;
+    float freq = 0;
+
+    // Calculate frequency based on timer value
+    freq = ((float) 8000000)/((float) readout);
+    
+    // Experimentally, we determined two points on a line:
+    // 62% RH ->  13,450 Hz
+    // 100% RH -> 11,500 Hz
+    // Thus, slope is -0.0195, and rh can be linearly interpolated:
+    rh = (int) (-0.0195*freq + 280);
+
+    // Bound RH at 5 - 95%
+    if (rh < 5) {
+	rh = 5;
+    } else if (rh > 95) {
+	rh = 95;
+    }
+
+    updateData(rh, MEASUREMENT_DELAY);
 }
 
 // Interrupt handler
