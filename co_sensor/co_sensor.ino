@@ -52,7 +52,7 @@ void loop() {
     
     resistance_ratio = resistance/RESISTANCE_100PPM;
 
-    if (resistance_ratio > 10) {
+    if (resistance_ratio > 4) {
 	co_ppm = 10;
     } else if (resistance_ratio > 2) {
 	co_ppm = 50;

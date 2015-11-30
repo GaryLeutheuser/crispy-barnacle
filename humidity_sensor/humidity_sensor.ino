@@ -70,10 +70,10 @@ void loop() {
     freq = ((float) 8000000)/((float) readout);
     
     // Experimentally, we determined two points on a line:
-    // 62% RH ->  13,450 Hz
-    // 100% RH -> 11,500 Hz
-    // Thus, slope is -0.0195, and rh can be linearly interpolated:
-    rh = (int) (-0.0195*freq + 280);
+    // 60% RH -> 6775 Hz
+    // 74% RH -> 7575  Hz
+    // Thus, slope is 0.0175, and rh can be linearly interpolated:
+    rh = (int) (0.0175*freq - 58.563);
 
     // Bound RH at 5 - 95%
     if (rh < 5) {
