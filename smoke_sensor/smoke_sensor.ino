@@ -11,8 +11,10 @@
 #define PIN_SMOKE_IN	5   // Amplified photodiode voltage - input to RFduino
 #define SENSOR_ID	1   // For use in minor field to ID the sensor board
 
-#define LED_ON_TIME	    50	// Time that LED should be left on to "charge" photodiode
-#define MEASUREMENT_DELAY   500 // Delay in ms between measurements
+#define LED_ON_TIME	    10	// Time that LED should be left on to "charge" photodiode
+#define MEASUREMENT_DELAY   250 // Delay in ms between measurements
+#define NUM_AVG		    3	// Number of samples to average to create one sample
+#define NUM_SAMPLES	    3	// Number of averaged samples to take in a sampling period
 
 int smoke = 0;
 
@@ -28,17 +30,37 @@ void setup() {
 }
 
 void loop() {
-    // Turn on LED for 50 ms
-    digitalWrite(PIN_SMOKE_CTRL, HIGH);
-    delay(LED_ON_TIME);
+    
+    int i, j;
+    
+    int smoke_sum = 0;
+    int averaged_sample = 0;
 
-    // Read smoke sensor output
-    smoke = analogRead(PIN_SMOKE_IN);
+    for (j = 0; j < NUM_SAMPLES; j++) {
+	
+	for (i = 0; i < NUM_AVG; i++) {
+	    // Turn on LED
+	    digitalWrite(PIN_SMOKE_CTRL, HIGH);
+	    delay(LED_ON_TIME);
 
-    // Turn off the LED
-    digitalWrite(PIN_SMOKE_CTRL, LOW);
+	    // Read smoke sensor output
+	    smoke = analogRead(PIN_SMOKE_IN);
+	    
+	    // Sum for averaging later
+	    smoke_sum += smoke;
 
-    // Broadcast smoke value and delay until
-    // next measurement
-    updateData(smoke, MEASUREMENT_DELAY);
+	    // Turn off the LED
+	    digitalWrite(PIN_SMOKE_CTRL, LOW);
+	}
+
+    // Create the average
+    averaged_sample = smoke_sum/NUM_AVG;
+
+    // Broadcast averaged sample
+    updateData(averaged_sample, 30);
+
+    }
+    
+    // Delay until next sampling period
+    delay(MEASUREMENT_DELAY);
 }
