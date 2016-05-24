@@ -4,14 +4,13 @@ sensors, each requiring a unique source code file. A listing of these sensors
 along with their current work status are shown below:
 
     1. Humidity
-	Requires testing, should be very close to finished.
+	Complete
     2. Smoke
-	Tested and working, needs experimentation to determine the
-	optimal delay values
+	Complete
     3. Carbon Monoxide
-	Baseline code written, untested
+	Complete
     4. Passive Infrared (PIR)
-	Finished
+	Complete
 
 These files are intended (via Arduino), to be loaded onto the RFduino device.
 Note also that additional functionality is defined in the RFduinoCustoms library,
